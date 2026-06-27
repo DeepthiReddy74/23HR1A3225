@@ -1,86 +1,108 @@
-import { useState } from "react";
+// =============================================
+// src/pages/NotificationsPage.jsx
+// Page 1: Shows all notifications with filter + pagination.
+// This file ALREADY EXISTS in your project - replace its content.
+// Has 1 log point: when user opens/clicks a notification
+// =============================================
+
 import {
-  Alert,
-  Badge,
-  Box,
-  CircularProgress,
-  Divider,
-  Pagination,
-  Stack,
+  Container,
   Typography,
+  Box,
+  Pagination,
+  CircularProgress,
+  Alert,
+  Divider,
 } from "@mui/material";
-import NotificationsIcon from "@mui/icons-material/Notifications";
-
-import { NotificationCard } from "../components/NotificationCard";
-import { NotificationFilter } from "../components/NotificationFilter";
+import { Log } from "../logger.js";
 import { useNotifications } from "../hooks/useNotifications";
+import { markAsRead, isRead } from "../utils/storageManager";
+import NotificationFilter from "../components/NotificationFilter";
+import NotificationCard from "../components/NotificationCard";
 
-export function NotificationsPage() {
-  const [filter, setFilter] = useState();
-  const [page, setPage] = useState("1");
+export default function NotificationsPage() {
+  // Get everything from the hook - no API calls directly in the page
+  const {
+    notifications,
+    loading,
+    error,
+    page,
+    totalPages,
+    filter,
+    changeFilter,
+    changePage,
+  } = useNotifications();
 
-  const { notifications, totalPages, loading, error } = useNotifications();
+  // Called when user clicks on a notification card
+  const handleNotificationClick = (notification) => {
+    // Mark it as read in localStorage
+    markAsRead(notification.id);
 
-  const unreadCount = 2;
-
-  const handleFilterChange = (newFilter) => {
-
-  };
-
-  const handlePageChange = (_, newPage) => {
-
+    // LOG #10 - User opened a notification
+    Log(
+      "frontend",
+      "info",
+      "NotificationsPage",
+      `User opened notification ${notification.id} (type: ${notification.notification_type})`
+    );
   };
 
   return (
-    <Box sx={{ maxWidth: 720, mx: "auto", px: 2, py: 4 }}>
-      <Stack direction="row" alignItems="center" spacing={1.5} mb={3}>
-        <Badge badgeContent={unreadCount} color="primary" max={99}>
-          <NotificationsIcon sx={{ fontSize: 28 }} />
-        </Badge>
-        <Typography variant="h5" fontWeight={700}>
-          Notifications
-        </Typography>
-      </Stack>
+    <Container maxWidth="md" sx={{ py: 3 }}>
+      {/* Page title */}
+      <Typography variant="h5" fontWeight="bold" gutterBottom>
+        All Notifications
+      </Typography>
 
-      <Divider sx={{ mb: 3 }} />
-
-      <Box sx={{ marginBottom: 3 }}>
-        <NotificationFilter value={filter} onChange={handleFilterChange} />
+      {/* Filter dropdown */}
+      <Box sx={{ mb: 2 }}>
+        <NotificationFilter value={filter} onChange={changeFilter} />
       </Box>
 
-      {true && (
-        <Box display="flex" justifyContent="center" py={6}>
+      <Divider sx={{ mb: 2 }} />
+
+      {/* Loading state */}
+      {loading && (
+        <Box sx={{ display: "flex", justifyContent: "center", py: 5 }}>
           <CircularProgress />
         </Box>
       )}
 
-      {!loading && error && (
-        <Alert severity="error">Failed to load notifications: {error}</Alert>
+      {/* Error state */}
+      {error && !loading && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Failed to load notifications: {error}
+        </Alert>
       )}
 
-      {loading && !error && notifications.length == "0" && (
-        <Alert severity="info">Something message</Alert>
+      {/* Empty state */}
+      {!loading && !error && notifications.length === 0 && (
+        <Alert severity="info">No notifications found.</Alert>
       )}
 
-      {loading && !error && notifications.length > 0 && (
-        <Stack spacing={1.5}>
-          {notifications.map((n) => (
-            <></>
-          ))}
-        </Stack>
-      )}
+      {/* Notification list */}
+      {!loading && notifications.map((notification) => (
+        <NotificationCard
+          key={notification.id}
+          notification={notification}
+          isRead={isRead(notification.id)}
+          onClick={handleNotificationClick}
+        />
+      ))}
 
-      {!loading && (
-        <Box display="flex" justifyContent="center" mt={4}>
+      {/* Pagination */}
+      {!loading && notifications.length > 0 && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
           <Pagination
             count={totalPages}
             page={page}
-            onChange={handlePageChange}
+            onChange={(event, value) => changePage(value)}
             color="primary"
-            shape="rounded"
+            showFirstButton
+            showLastButton
           />
         </Box>
       )}
-    </Box>
+    </Container>
   );
 }

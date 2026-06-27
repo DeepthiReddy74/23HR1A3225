@@ -1,20 +1,40 @@
-import { ToggleButton, ToggleButtonGroup } from "@mui/material";
+// =============================================
+// src/components/NotificationFilter.jsx
+// Dropdown to filter by notification type.
+// This file ALREADY EXISTS in your project - replace its content.
+// =============================================
 
-const filters = ["All", "Placement", "Result", "Event"];
+import {
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Box,
+} from "@mui/material";
 
-export function NotificationFilter({ value, onChange }) {
+/**
+ * Props:
+ *   value       - current filter value ("" | "Event" | "Result" | "Placement")
+ *   onChange    - function to call when user picks a new filter
+ */
+export default function NotificationFilter({ value, onChange }) {
   return (
-    <ToggleButtonGroup
-      value={value}
-      exclusive
-      size="small"
-      sx={{ flexWrap: "wrap", gap: 0.5 }}
-    >
-      {filters.map((type) => (
-        <ToggleButton value={type} sx={{ textTransform: "none", px: 2 }}>
-          {type}
-        </ToggleButton>
-      ))}
-    </ToggleButtonGroup>
+    <Box sx={{ minWidth: 200 }}>
+      <FormControl fullWidth size="small">
+        <InputLabel id="filter-label">Filter by type</InputLabel>
+        <Select
+          labelId="filter-label"
+          value={value}
+          label="Filter by type"
+          onChange={(e) => onChange(e.target.value)}
+        >
+          {/* Empty string = show all */}
+          <MenuItem value="">All types</MenuItem>
+          <MenuItem value="Placement">Placement</MenuItem>
+          <MenuItem value="Result">Result</MenuItem>
+          <MenuItem value="Event">Event</MenuItem>
+        </Select>
+      </FormControl>
+    </Box>
   );
 }
